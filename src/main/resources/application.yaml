@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: note-service
+  data:
+    mongodb:
+      url: ${mongourl}
