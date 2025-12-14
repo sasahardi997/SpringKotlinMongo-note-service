@@ -1,4 +1,4 @@
-package com.hardi.note_service
+package com.hardi.noteservice
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

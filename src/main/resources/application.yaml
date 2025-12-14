@@ -3,4 +3,8 @@ spring:
     name: note-service
   data:
     mongodb:
-      url: ${mongourl}
+      uri: mongodb://localhost:27017/notesdb
+  security:
+    user:
+      name: admin
+      password: admin
