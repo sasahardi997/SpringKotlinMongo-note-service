@@ -24,7 +24,7 @@ class AuthController(
 
     @PostMapping("/refresh")
     fun refresh(@RequestBody body: RefreshRequest): AuthService.TokenPair {
-        authService.refreshTokens(body.refreshToken)
+        return authService.refreshTokens(body.refreshToken)
     }
 
     data class AuthRequest(

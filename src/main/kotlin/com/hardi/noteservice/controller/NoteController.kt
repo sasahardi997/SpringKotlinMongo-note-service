@@ -2,9 +2,12 @@ package com.hardi.noteservice.controller
 
 import com.hardi.noteservice.domain.dto.NoteRequestDTO
 import com.hardi.noteservice.domain.dto.NoteResponseDTO
+import com.hardi.noteservice.exception.ForbiddenException
+import com.hardi.noteservice.exception.UnauthorizedException
 import com.hardi.noteservice.service.NoteService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,9 +27,9 @@ class NoteController(val noteService: NoteService) {
         return noteService.saveNote(noteRequestDTO)
     }
 
-    @GetMapping("/{ownerId}")
-    fun findByOwnerId(@PathVariable("ownerId") ownerId: String): List<NoteResponseDTO> {
-        return noteService.findByOwnerId(ownerId)
+    @GetMapping
+    fun findByOwnerId(): List<NoteResponseDTO> {
+        return noteService.findByOwnerId()
     }
 
     @DeleteMapping("/{id}")

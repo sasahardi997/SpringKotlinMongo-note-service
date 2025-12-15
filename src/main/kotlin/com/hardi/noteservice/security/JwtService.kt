@@ -17,7 +17,7 @@ class JwtService(
         ACCESS, REFRESH
     }
 
-    private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
+    private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray(Charsets.UTF_8))
 
     private val accessTokenValidityMs = 300_000L //5 minutes
     internal val refreshTokenValidityMS = 604_800_000L //7 days
@@ -70,8 +70,6 @@ class JwtService(
         val tokenType = claims["type"] as? String ?: return false
         return tokenType == TokenType.REFRESH.name
     }
-
-
 
     private fun parseAllClaims(token: String): Claims? {
         return try {

@@ -3,9 +3,12 @@ package com.hardi.noteservice.service
 import com.hardi.noteservice.domain.Note
 import com.hardi.noteservice.domain.dto.NoteRequestDTO
 import com.hardi.noteservice.domain.dto.NoteResponseDTO
+import com.hardi.noteservice.exception.ForbiddenException
 import com.hardi.noteservice.exception.NoteNotFoundException
+import com.hardi.noteservice.exception.UnauthorizedException
 import com.hardi.noteservice.repository.NoteRepository
 import org.bson.types.ObjectId
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -13,6 +16,13 @@ import java.time.Instant
 class NoteService(val noteRepository: NoteRepository) {
 
     fun saveNote(noteRequestDTO: NoteRequestDTO): NoteResponseDTO {
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw UnauthorizedException("User is not authenticated")
+
+        val ownerId = authentication.principal as? String
+            ?: throw ForbiddenException("Invalid authentication principal")
+
+
         val note = noteRequestDTO.let { it ->
             Note(
                 id = it.id?.let { ObjectId(it) } ?: ObjectId.get(),
@@ -20,7 +30,7 @@ class NoteService(val noteRepository: NoteRepository) {
                 content = it.content,
                 color = it.color,
                 createdAt = Instant.now(),
-                ownerId = ObjectId()
+                ownerId = ObjectId(ownerId)
             )
         }
 
@@ -29,17 +39,31 @@ class NoteService(val noteRepository: NoteRepository) {
         return savedNote.toResponseDTO()
     }
 
-    fun findByOwnerId(ownerId: String): List<NoteResponseDTO> {
+    fun findByOwnerId(): List<NoteResponseDTO> {
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw UnauthorizedException("User is not authenticated")
+
+        val ownerId = authentication.principal as? String
+            ?: throw ForbiddenException("Invalid authentication principal")
+
         val ownerObjectId = ObjectId(ownerId)
         return noteRepository.findByOwnerId(ownerObjectId)
             .map { it.toResponseDTO() }
     }
 
     fun deleteById(id: String) {
-        val objectId = ObjectId(id)
-        val note = noteRepository.findById(objectId)
-        if (note.isEmpty) throw NoteNotFoundException("Note with id $id not found")
-        noteRepository.delete(note.get())
+        val note = noteRepository.findById(ObjectId(id))
+            .orElseThrow{ IllegalArgumentException("Note not found with id $id") }
+
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw UnauthorizedException("User is not authenticated")
+
+        val ownerId = authentication.principal as? String
+            ?: throw ForbiddenException("Invalid authentication principal")
+
+        if(note.ownerId.toHexString() == ownerId) {
+            noteRepository.delete(note)
+        }
     }
 
 
