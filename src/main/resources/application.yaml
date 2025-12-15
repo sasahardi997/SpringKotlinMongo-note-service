@@ -3,8 +3,10 @@ spring:
     name: note-service
   data:
     mongodb:
-      uri: mongodb://localhost:27017/notesdb
+      uri: ${mongo-url}
   security:
     user:
       name: admin
       password: admin
+jwt:
+  secret: ${note-service-token-secret}
