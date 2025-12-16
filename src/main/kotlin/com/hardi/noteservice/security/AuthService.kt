@@ -31,7 +31,11 @@ class AuthService(
         val hashedPassword =
             hashEncoder.encode(password) ?: throw BadRequestException("The provided password is not valid")
 
-        val user = User(email = email, hashedPassword = hashedPassword)
+        if(userRepository.findByEmail(email.trim()) != null) {
+            throw BadRequestException("A user with email: $email already exists.")
+        }
+
+        val user = User(email = email.trim(), hashedPassword = hashedPassword)
         return userRepository.save(user)
     }
 
