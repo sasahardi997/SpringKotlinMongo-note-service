@@ -1,5 +1,6 @@
 package com.hardi.noteservice.security
 
+import com.hardi.noteservice.exception.ForbiddenException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -53,7 +54,7 @@ class JwtService(
             token.removePrefix("Bearer ")
         } else token
 
-        val claims = parseAllClaims(rawToken) ?: throw IllegalArgumentException("Invalid token")
+        val claims = parseAllClaims(rawToken) ?: throw ForbiddenException("Invalid token")
         return claims.subject
     }
 

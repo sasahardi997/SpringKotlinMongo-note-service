@@ -3,6 +3,7 @@ package com.hardi.noteservice.service
 import com.hardi.noteservice.domain.Note
 import com.hardi.noteservice.domain.dto.NoteRequestDTO
 import com.hardi.noteservice.domain.dto.NoteResponseDTO
+import com.hardi.noteservice.exception.BadRequestException
 import com.hardi.noteservice.exception.ForbiddenException
 import com.hardi.noteservice.exception.NoteNotFoundException
 import com.hardi.noteservice.exception.UnauthorizedException
@@ -53,7 +54,7 @@ class NoteService(val noteRepository: NoteRepository) {
 
     fun deleteById(id: String) {
         val note = noteRepository.findById(ObjectId(id))
-            .orElseThrow{ IllegalArgumentException("Note not found with id $id") }
+            .orElseThrow{ BadRequestException("Note not found with id $id") }
 
         val authentication = SecurityContextHolder.getContext().authentication
             ?: throw UnauthorizedException("User is not authenticated")

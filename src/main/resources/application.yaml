@@ -4,9 +4,6 @@ spring:
   data:
     mongodb:
       uri: ${mongo-url}
-  security:
-    user:
-      name: admin
-      password: admin
+      auto-index-creation: true
 jwt:
   secret: ${note-service-token-secret}

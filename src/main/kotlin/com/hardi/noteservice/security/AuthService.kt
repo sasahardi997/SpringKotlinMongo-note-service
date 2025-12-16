@@ -2,6 +2,9 @@ package com.hardi.noteservice.security
 
 import com.hardi.noteservice.domain.RefreshToken
 import com.hardi.noteservice.domain.User
+import com.hardi.noteservice.exception.BadRequestException
+import com.hardi.noteservice.exception.ForbiddenException
+import com.hardi.noteservice.exception.UnauthorizedException
 import com.hardi.noteservice.repository.RefreshTokenRepository
 import com.hardi.noteservice.repository.UserRepository
 import org.bson.types.ObjectId
@@ -26,17 +29,17 @@ class AuthService(
 
     fun register(email: String, password: String): User {
         val hashedPassword =
-            hashEncoder.encode(password) ?: throw IllegalArgumentException("The provided password is not valid")
+            hashEncoder.encode(password) ?: throw BadRequestException("The provided password is not valid")
 
         val user = User(email = email, hashedPassword = hashedPassword)
         return userRepository.save(user)
     }
 
     fun login(email: String, password: String): TokenPair {
-        val user = userRepository.findByEmail(email) ?: throw BadCredentialsException("Invalid credentials")
+        val user = userRepository.findByEmail(email) ?: throw BadRequestException("Invalid credentials")
 
         if(!hashEncoder.matches(password, user.hashedPassword)) {
-            throw BadCredentialsException("Invalid credentials")
+            throw BadRequestException("Invalid credentials")
         }
 
         val newAccessToken = jwtService.generateAccessToken(user.id.toHexString())
@@ -53,16 +56,16 @@ class AuthService(
     @Transactional
     fun refreshTokens(refreshToken: String): TokenPair {
         if(!jwtService.validateRefreshToken(refreshToken)) {
-            throw IllegalArgumentException("Invalid refresh token.")
+            throw ForbiddenException("Invalid refresh token.")
         }
 
         val userId = jwtService.getUserIdFromToken(refreshToken)
         val user = userRepository.findById(ObjectId(userId))
-            .orElseThrow{ IllegalArgumentException("Invalid refresh token.") }
+            .orElseThrow{ ForbiddenException("Invalid refresh token.") }
 
         val hashed = hashToken(refreshToken)
         refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
-            ?: throw java.lang.IllegalArgumentException("Refresh token not recognized.")
+            ?: throw UnauthorizedException("Refresh token not recognized.")
 
         refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)
 
